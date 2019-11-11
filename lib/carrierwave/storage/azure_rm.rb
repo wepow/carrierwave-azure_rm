@@ -4,8 +4,12 @@ module CarrierWave
   module Storage
     class AzureRM < Abstract
       def store!(file)
-        azure_file = CarrierWave::Storage::AzureRM::File.new(uploader, connection, uploader.store_path, signer)
+        azure_file = CarrierWave::Storage::AzureRM::File.new(uploader,
+                                                             connection,
+                                                             uploader.store_path,
+                                                             signer)
         azure_file.store!(file)
+
         azure_file
       end
 
@@ -14,28 +18,34 @@ module CarrierWave
       end
 
       def connection
-        @connection ||= begin
-          %i(storage_account_name storage_access_key storage_blob_host).each do |key|
-            ::Azure::Storage.send("#{key}=", uploader.send("azure_#{key}"))
+        @connection ||=
+          begin
+            options = {
+              storage_account_name: uploader.azure_storage_account_name,
+              storage_access_key: uploader.azure_storage_access_key,
+            }
+
+            ::Azure::Storage::Blob::BlobService.create(options)
           end
-          ::Azure::Storage::Blob::BlobService.new
-        end
       end
 
       def signer
-        @signer ||= begin
-          ::Azure::Storage::Core::Auth::SharedAccessSignature.new
-        end
+        @signer ||=
+          begin
+            ::Azure::Storage::Core::Auth::
+              SharedAccessSignature.new(uploader.azure_storage_account_name,
+                                        uploader.azure_storage_access_key)
+          end
       end
 
       class File
         attr_reader :path
 
         def initialize(uploader, connection, path, signer = nil)
-          @uploader = uploader
+          @uploader   = uploader
           @connection = connection
-          @signer = signer
-          @path = path
+          @signer     = signer
+          @path       = path
         end
 
         def ensure_container_exists(name)
@@ -74,6 +84,7 @@ module CarrierWave
 
         def url(options = {})
           path = ::File.join @uploader.azure_container, @path
+
           if @uploader.asset_host
             "#{@uploader.asset_host}/#{path}"
           else
@@ -141,7 +152,8 @@ module CarrierWave
         end
 
         def sign_url?(options)
-          @uploader.auto_sign_urls && !options[:skip_signing] && access_level == 'private'
+          @uploader.auto_sign_urls && !options[:skip_signing] &&
+            access_level == 'private'
         end
 
         def blob
