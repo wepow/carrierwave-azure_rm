@@ -17,7 +17,8 @@ Gem::Specification.new do |gem|
   gem.require_paths = ['lib']
 
   gem.add_dependency 'carrierwave'
-  gem.add_dependency 'azure-storage', '~> 0.12.1.preview'
+  #gem.add_dependency 'azure-storage', '~> 0.12.1.preview'
+  gem.add_dependency 'azure-storage-common', '~> 1.1.0'
 
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'rspec', '~> 3'
