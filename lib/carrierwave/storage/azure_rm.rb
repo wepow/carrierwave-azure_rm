@@ -34,7 +34,7 @@ module CarrierWave
       def signer
         @signer ||=
           begin
-            ::Azure::Storage::Core::Auth::
+            ::Azure::Storage::Common::Core::Auth::
               SharedAccessSignature.new(uploader.azure_storage_account_name,
                                         uploader.azure_storage_access_key)
           end
